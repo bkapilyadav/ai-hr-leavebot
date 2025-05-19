@@ -1,22 +1,19 @@
 import os
 import streamlit as st
 import pandas as pd
-from openai import OpenAI
+import openai
 
-# Initialize OpenAI client
-# Get API key from Streamlit secrets
+# Set OpenAI API key
 try:
-    api_key = st.secrets["OPENAI_API_KEY"]
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
 except Exception as e:
-    st.error(f"Error accessing API key: {type(e).__name__}")
-    st.error("Please make sure you've added the OPENAI_API_KEY to your app secrets.")
+    st.error("Error accessing API key. Please add OPENAI_API_KEY to your app secrets.")
     st.stop()
-
-# Initialize OpenAI client
-client = OpenAI(api_key=api_key)
 
 st.set_page_config(page_title="LeaveBot AI", page_icon="🧠")
 st.title("🧠 AI LeaveBot – HR Automation Assistant")
+
+# Rest of your code...
 
 employee_name = st.text_input("Enter your full name")
 leave_request = st.text_area("Describe your leave request")
@@ -64,13 +61,13 @@ if st.button("Submit Request"):
         any special considerations, and next steps.
         '''
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an HR assistant that helps with leave requests."},
-                {"role": "user", "content": prompt}
-            ]
-        )
+        response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+        {"role": "system", "content": "You are an HR assistant that helps with leave requests."},
+        {"role": "user", "content": prompt}
+                    ]
+                    )
 
         policy_response = response.choices[0].message.content
 
