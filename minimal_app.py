@@ -3,7 +3,16 @@ import pandas as pd
 from openai import OpenAI
 
 # Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Get API key from environment or secrets
+api_key = os.getenv("OPENAI_API_KEY")
+
+# Check if API key is available
+if not api_key:
+    st.error("OpenAI API key not found. Please add it to the app secrets.")
+    st.stop()
+
+# Initialize OpenAI client
+client = OpenAI(api_key=api_key)
 
 st.set_page_config(page_title="LeaveBot AI", page_icon="🧠")
 st.title("🧠 AI LeaveBot – HR Automation Assistant")
