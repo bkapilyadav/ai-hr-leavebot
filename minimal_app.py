@@ -3,7 +3,7 @@ import pandas as pd
 from openai import OpenAI
 
 # Initialize OpenAI client
-client = OpenAI()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 st.set_page_config(page_title="LeaveBot AI", page_icon="🧠")
 st.title("🧠 AI LeaveBot – HR Automation Assistant")
