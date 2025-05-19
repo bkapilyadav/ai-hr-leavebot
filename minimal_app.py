@@ -1,17 +1,30 @@
 import streamlit as st
 import pandas as pd
+import os
 from openai import OpenAI
 
 st.set_page_config(page_title="LeaveBot AI", page_icon="🧠")
 st.title("🧠 AI LeaveBot – HR Automation Assistant")
 
-# Try to get API key from secrets
-try:
-    api_key = st.secrets["OPENAI_API_KEY"]
+# Set OpenAI API key - try multiple methods
+api_key = None
+
+# Try environment variable first
+api_key = os.environ.get("OPENAI_API_KEY")
+
+# If not found, try Streamlit secrets
+if not api_key:
+    try:
+        api_key = st.secrets["OPENAI_API_KEY"]
+    except:
+        pass
+
+# Initialize client if we have a key
+if api_key:
     client = OpenAI(api_key=api_key)
-except Exception as e:
-    st.error("Error: OpenAI API key not found in secrets")
-    st.error("Please add your OpenAI API key to the app secrets with the name 'OPENAI_API_KEY'")
+else:
+    st.error("Error: OpenAI API key not found")
+    st.error("Please add your OpenAI API key to the app secrets")
     st.stop()
 
 employee_name = st.text_input("Enter your full name")
@@ -85,4 +98,3 @@ if st.button("Submit Request"):
         except Exception as e:
             st.error(f"Error calling OpenAI API: {type(e).__name__}")
             st.error("Please check your API key and try again.")
-
