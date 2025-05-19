@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from openai import OpenAI
+import openai
 
 st.set_page_config(page_title="LeaveBot AI", page_icon="🧠")
 st.title("🧠 AI LeaveBot – HR Automation Assistant")
@@ -19,9 +19,9 @@ if not api_key:
     except:
         pass
 
-# Initialize client if we have a key
+# Set the API key if we found one
 if api_key:
-    client = OpenAI(api_key=api_key)
+    openai.api_key = api_key
 else:
     st.error("Error: OpenAI API key not found")
     st.error("Please add your OpenAI API key to the app secrets")
@@ -74,7 +74,7 @@ if st.button("Submit Request"):
         '''
 
         try:
-            response = client.chat.completions.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are an HR assistant that helps with leave requests."},
@@ -82,7 +82,7 @@ if st.button("Submit Request"):
                 ]
             )
 
-            policy_response = response.choices[0].message.content
+            policy_response = response.choices[0].message['content']
 
             result = f"🧠 *AI Response:*\n{policy_response}\n\n✅ You have {leave_balance} days left."
             st.success(result)
