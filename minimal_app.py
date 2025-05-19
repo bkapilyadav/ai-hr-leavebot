@@ -1,14 +1,15 @@
+import os
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
 
 # Initialize OpenAI client
-# Get API key from environment or secrets
-api_key = os.getenv("OPENAI_API_KEY")
-
-# Check if API key is available
-if not api_key:
-    st.error("OpenAI API key not found. Please add it to the app secrets.")
+# Get API key from Streamlit secrets
+try:
+    api_key = st.secrets["OPENAI_API_KEY"]
+except Exception as e:
+    st.error(f"Error accessing API key: {type(e).__name__}")
+    st.error("Please make sure you've added the OPENAI_API_KEY to your app secrets.")
     st.stop()
 
 # Initialize OpenAI client
