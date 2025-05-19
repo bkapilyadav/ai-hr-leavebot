@@ -2,16 +2,22 @@ import streamlit as st
 import pandas as pd
 from openai import OpenAI
 
-# Initialize OpenAI client
-client = OpenAI()
-
 st.set_page_config(page_title="LeaveBot AI", page_icon="🧠")
 st.title("🧠 AI LeaveBot – HR Automation Assistant")
+
+# Try to get API key from secrets
+try:
+    api_key = st.secrets["OPENAI_API_KEY"]
+    client = OpenAI(api_key=api_key)
+except Exception as e:
+    st.error("Error: OpenAI API key not found in secrets")
+    st.error("Please add your OpenAI API key to the app secrets with the name 'OPENAI_API_KEY'")
+    st.stop()
 
 employee_name = st.text_input("Enter your full name")
 leave_request = st.text_area("Describe your leave request")
 
-# Sample leave policy text - in a real app, you'd load this from a file
+# Sample leave policy text
 LEAVE_POLICY = '''
 Company Leave Policy:
 1. Employees are entitled to 20 days of annual leave per year.
@@ -21,7 +27,7 @@ Company Leave Policy:
 5. Emergency leave can be granted with manager's approval.
 '''
 
-# Load employee data - create a sample if file doesn't exist
+# Create sample employee data if file doesn't exist
 try:
     df = pd.read_csv("employee_data.csv")
 except:
@@ -42,7 +48,7 @@ if st.button("Submit Request"):
         leave_balance = int(emp_data.iloc[0]['leave_balance'])
         st.markdown(f"📊 **Current Leave Balance**: `{leave_balance}` days")
 
-        # Use OpenAI directly instead of a vector database
+        # Use OpenAI directly
         prompt = f'''
         Based on the following leave policy:
         {LEAVE_POLICY}
@@ -54,24 +60,28 @@ if st.button("Submit Request"):
         any special considerations, and next steps.
         '''
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an HR assistant that helps with leave requests."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-
-        policy_response = response.choices[0].message.content
-
-        result = f"🧠 *AI Response:*\n{policy_response}\n\n✅ You have {leave_balance} days left."
-        st.success(result)
-
-        # Log the request
         try:
-            with open("logs.csv", "a") as f:
-                f.write(f"{employee_name},{leave_request},{policy_response}\n")
-        except:
-            with open("logs.csv", "w") as f:
-                f.write("employee,request,response\n")
-                f.write(f"{employee_name},{leave_request},{policy_response}\n")
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an HR assistant that helps with leave requests."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            policy_response = response.choices[0].message.content
+
+            result = f"🧠 *AI Response:*\n{policy_response}\n\n✅ You have {leave_balance} days left."
+            st.success(result)
+
+            # Log the request
+            try:
+                with open("logs.csv", "a") as f:
+                    f.write(f"{employee_name},{leave_request},{policy_response}\n")
+            except:
+                with open("logs.csv", "w") as f:
+                    f.write("employee,request,response\n")
+                    f.write(f"{employee_name},{leave_request},{policy_response}\n")
+        except Exception as e:
+            st.error(f"Error calling OpenAI API: {type(e).__name__}")
+            st.error("Please check your API key and try again.")
